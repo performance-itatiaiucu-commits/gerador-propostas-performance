@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1F386E"/>
+      <stop offset="100%" stop-color="#2c4d8f"/>
+    </linearGradient>
+    <linearGradient id="brand-stripe" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#04CCFF"/>
+      <stop offset="50%" stop-color="#7FCC0E"/>
+      <stop offset="100%" stop-color="#9A66CB"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect x="0" y="56" width="64" height="8" rx="4" fill="url(#brand-stripe)"/>
+  <text x="32" y="39" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="28" fill="#FFFFFF" text-anchor="middle">GP</text>
+</svg>
