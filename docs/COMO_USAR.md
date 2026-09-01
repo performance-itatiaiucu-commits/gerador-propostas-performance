@@ -1,8 +1,8 @@
 # Gerador de Propostas — Como usar
 
-## Abrir
-Dê **duplo clique** em `gerador_propostas.html`. Abre no navegador (Chrome ou Edge recomendados).
-Funciona **100% offline** — não precisa de internet, instalação ou servidor. Pode ser copiado por pendrive/e-mail para qualquer computador da equipe.
+## Como Acessar
+- **Online (Recomendado):** Acesse diretamente pelo link: [performance-itatiaiucu-commits.github.io/gerador-propostas-performance](https://performance-itatiaiucu-commits.github.io/gerador-propostas-performance/)
+- **Offline / Local:** Dê **duplo clique** em `index.html` para abrir no navegador (Chrome ou Edge recomendados). Não requer instalação ou servidor local.
 
 ## Fluxo de preenchimento
 
