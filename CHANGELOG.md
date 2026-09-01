@@ -4,6 +4,20 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
 
 ---
 
+## [1.9] — 2026-09-01
+
+### Alterado
+- **Novo favicon** com o símbolo oficial da marca Grupo Performance Ocupacional
+  (círculos sobrepostos ciano e roxo com lente índigo e pétala verde), recriado
+  em SVG vetorial a partir da identidade visual (Missão/Visão/Valores).
+
+### Adicionado
+- Pacote completo de ícones: `favicon.svg`, `favicon.ico` (16/32/48px),
+  PNGs 16/32/48/192/512px e `apple-touch-icon.png` (180px) para iOS.
+- `site.webmanifest` (PWA) e `meta theme-color` para dispositivos móveis.
+
+---
+
 ## [1.8] — 2026-09-01
 
 ### Adicionado
