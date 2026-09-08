@@ -99,7 +99,7 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
   do Simples Nacional. Não é impresso na proposta.
 
 ### Removido
-- Nota sobre o sistema SOC.
+- Nota sobre o sistema ESO.
 
 ---
 

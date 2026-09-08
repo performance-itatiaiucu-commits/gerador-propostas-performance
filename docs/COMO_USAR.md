@@ -73,9 +73,9 @@ A **faixa tricolor** (ciano → verde → roxo), que remete aos três círculos 
 | Tipo | Particularidade automática |
 |---|---|
 | **A** eSocial Contábil | Sem seção de Contratante; sem coluna de aprovação na capa; foro Itatiaiuçu |
-| **B** eSocial CFC | Itens mensais somam "Total da Mensalidade" (PGR/24 + PCMSO/12 + valor/vida) |
+| **B** eSocial CFC | Itens mensais somam "Total da Mensalidade" com cobrança por colaborador ativo/mês |
 | **C** eSocial por vidas | Faixas 1–100 / 101–180 / 181+ |
-| **D** Mensalista | Valor por colaborador ativo/mês, PPRA+PCMSO inclusos |
+| **D** Mensalista | Permite combinar cobrança por colaborador ativo/mês e valor mensal por empresa |
 | **E** Documentação Legal | Bloco de NF (2 CNPJs), foro Itaúna, sem vigência/rescisão |
 | **F** LTCAT | GHE + deslocamento + condições comerciais + linha TOTAL |
 | **G** Psicossociais | Relação de empregados calcula **Método 1** (todos) e **Método 2** (mín. 3 por cargo) |
@@ -111,13 +111,13 @@ Abra o arquivo em um editor de texto (Bloco de Notas, VS Code) e procure:
 
 ---
 
-## v1.2 — Nota do sistema SOC removida
+## v1.2 — Nota do sistema ESO removida
 
-O parágrafo institucional sobre o software SOC ("O Grupo Performance Ocupacional utiliza o sistema operacional SOC…") foi **removido do app**: saiu o texto, a caixa de seleção do formulário e a lógica que o inseria no PDF.
+O parágrafo institucional sobre o software ESO ("O Grupo Performance Ocupacional utiliza o sistema operacional ESO…") foi **removido do app**: saiu o texto, a caixa de seleção do formulário e a lógica que o inseria no PDF.
 
 As propostas dos tipos A, B, C e D não trazem mais esse bloco de observação após a tabela do Objeto.
 
-> As descrições dos **serviços de eSocial** continuam mencionando "com utilização do sistema SOC", pois isso faz parte do nome do serviço nos modelos originais. Se quiser tirar também, edite o `const CAT=[` e remova o trecho das descrições `ESOC_VIDA` e `ESOC_EMP`.
+> As descrições dos **serviços de eSocial** utilizam a referência ao sistema ESO nos itens `ESOC_VIDA` e `ESOC_EMP`.
 
 ---
 
@@ -206,7 +206,7 @@ O catálogo (`const CAT=[`) foi **totalmente substituído** pela tabela oficial
 | 4 | Medições Ambientais | 17 (16 + Deslocamento) | R$ 190,00 – R$ 980,00 |
 | 5 | Psicossociais | 3 | R$ 200,00 – R$ 400,00 |
 | 6 | Treinamentos | 30 | R$ 300,00 – R$ 6.500,00 |
-| 7 | eSocial / Mensal | 4 | R$ 12,80 – R$ 80,00 |
+| 7 | eSocial / Mensal | 2 | R$ 13,80 – R$ 80,00 |
 
 ### Unidades que NÃO são "un" (atenção ao cotar)
 - **Laudo Ergonômico / AET** → `função` (R$ 230,00 **por função**).

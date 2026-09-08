@@ -60,7 +60,7 @@ Na janela de impressão do navegador:
 | **G** | Fatores Psicossociais |
 
 ### Principais Recursos
-- **Catálogo Oficial com 90 serviços** em 7 categorias (Exames, Programas SST, Laudos, Medições Ambientais, Psicossociais, Treinamentos e eSocial).
+- **Catálogo Oficial com 88 serviços** em 7 categorias (Exames, Programas SST, Laudos, Medições Ambientais, Psicossociais, Treinamentos e eSocial).
 - **Consulta Automática de CNPJ**: busca razão social, endereço e dados cadastrais diretamente na base da Receita Federal via BrasilAPI (com fallback para CNPJá Open).
 - **Upload de Logotipo do Cliente**: exibido na capa da proposta ao lado do logotipo institucional.
 - **Gestão de Descontos**: desconto individual por item, desconto em lote (%) e desconto geral sobre o subtotal.

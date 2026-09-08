@@ -223,8 +223,8 @@ const TXT={
 /* ---- catálogo de prazos de entrega por programa ----
    'cods' liga o prazo aos itens do catálogo de serviços (marcação automática) */
 const PRAZOS=[
- {id:"PGR",   rot:"PGR",   txt:"A elaboração e entrega do PGR (Programa de Gerenciamento de Riscos) possui prazo de 5 (cinco) dias após o recebimento de todas as informações completas por parte do cliente.", cods:["PGR","PGR_ART","PGR_NR18","PGR_NR22","PGRTR","PGRSS","PGR_24"]},
- {id:"PCMSO", rot:"PCMSO", txt:"A elaboração e entrega do PCMSO (Programa de Controle Médico de Saúde Ocupacional) possui prazo de 5 (cinco) dias após o recebimento de todas as informações completas por parte do cliente.", cods:["PCMSO","PCMSO_12"]},
+ {id:"PGR",   rot:"PGR",   txt:"A elaboração e entrega do PGR (Programa de Gerenciamento de Riscos) possui prazo de 5 (cinco) dias após o recebimento de todas as informações completas por parte do cliente.", cods:["PGR","PGR_ART","PGR_NR18","PGR_NR22","PGRTR","PGRSS"]},
+ {id:"PCMSO", rot:"PCMSO", txt:"A elaboração e entrega do PCMSO (Programa de Controle Médico de Saúde Ocupacional) possui prazo de 5 (cinco) dias após o recebimento de todas as informações completas por parte do cliente.", cods:["PCMSO"]},
  {id:"LTCAT", rot:"LTCAT", txt:"A elaboração e entrega do LTCAT (Laudo Técnico das Condições Ambientais do Trabalho) possui prazo de 30 (trinta) dias após a conclusão dos levantamentos ambientais (medições).", cods:["LTCAT"]},
  {id:"APR",   rot:"APR",   txt:"A elaboração e entrega da APR (Matriz de Riscos) possui prazo mínimo de 10 (dez) dias.", cods:["APR"]},
  {id:"PPR",   rot:"PPR",   txt:"A elaboração e entrega do PPR (Programa de Proteção Respiratória) possui prazo de 3 (três) dias após a aprovação da proposta.", cods:["PPR"]},
@@ -349,10 +349,8 @@ const CAT=[
  {g:"Treinamentos",c:"TR_SUP_SEG",d:"Treinamento Supervisor Seguro – Mineração Usiminas",u:"pessoa",v:300},
 
  /* ---------- 7. eSOCIAL – SST ---------- */
- {g:"eSocial / Mensal",c:"ESOC_EMP",d:"Gestão do eSocial para eventos de SST com utilização do sistema SOC (Eventos S-2210, S-2220, S-2230, S-2240) em conformidade com a Portaria 8.373/14 — valor por empresa",u:"mês",v:80,mensal:1},
- {g:"eSocial / Mensal",c:"ESOC_VIDA",d:"Gestão do eSocial para eventos de SST com utilização do sistema SOC (Eventos S-2210, S-2220, S-2230, S-2240) em conformidade com a Portaria 8.373/14 — por colaborador ativo",u:"vida/mês",v:12.80,mensal:1},
- {g:"eSocial / Mensal",c:"PGR_24",d:"PGR – Programa de Gerenciamento de Riscos em conformidade com a NR-1 (vigência 24 meses) — parcelado em 24x",u:"mês",v:18.75,mensal:1},
- {g:"eSocial / Mensal",c:"PCMSO_12",d:"PCMSO – Programa de Controle Médico e Saúde Ocupacional em conformidade com a NR-7 (vigência 12 meses) — parcelado em 12x",u:"mês",v:37.50,mensal:1}
+ {g:"eSocial / Mensal",c:"ESOC_EMP",d:"Gestão do eSocial para eventos de SST com utilização do sistema ESO (Eventos S-2210, S-2220, S-2230, S-2240) em conformidade com a Portaria 8.373/14 — valor por empresa",u:"mês",v:80,mensal:1},
+ {g:"eSocial / Mensal",c:"ESOC_VIDA",d:"Gestão do eSocial para eventos de SST com utilização do sistema ESO (Eventos S-2210, S-2220, S-2230, S-2240) em conformidade com a Portaria 8.373/14 + Mapeamento dos riscos psicossociais relacionados ao trabalho, nos termos da NR-1 e da Portaria MTE nº 1.419/2024, entendidos como perigos decorrentes de problemas na concepção, na organização e na gestão do trabalho, que podem gerar efeitos na saúde do trabalhador em nível psicológico, físico e social — por colaborador ativo",u:"vida/mês",v:13.80,mensal:1}
 ];
 
 /* ---- tipos de proposta ---- */
@@ -360,9 +358,9 @@ const TIPOS={
  A:{nome:"eSocial – Escritório Contábil",desc:"Carteira de clientes de contabilidade",ref:"DOCUMENTAÇÃO LEGAL E GESTÃO DE E-SOCIAL",tit:"DOCUMENTAÇÃO LEGAL & GESTÃO DO ESOCIAL",
     contratante:false,aprovCapa:false,prazo:"P1",fat:"F1",foro:"Itatiaiuçu / MG",emissor:"matriz",nf:false,rev:true,vig:true,rodape3:false,
     sug:["PGR","PCMSO","LTCAT","ESOC_EMP"]},
- B:{nome:"eSocial – Mensalidade Composta (CFC)",desc:"PGR/24 + PCMSO/12 + valor por vida",ref:"DOCUMENTAÇÃO LEGAL E GESTÃO DE ESOCIAL",tit:"DOCUMENTAÇÃO LEGAL & GESTÃO DO ESOCIAL",
+ B:{nome:"eSocial – Mensalidade Composta (CFC)",desc:"Valor por colaborador ativo/mês",ref:"DOCUMENTAÇÃO LEGAL E GESTÃO DE ESOCIAL",tit:"DOCUMENTAÇÃO LEGAL & GESTÃO DO ESOCIAL",
     contratante:true,aprovCapa:true,prazo:"P1plus",fat:"F1",foro:"Itatiaiuçu / MG",emissor:"matriz",nf:false,rev:true,vig:true,rodape3:false,
-    sug:["ESOC_VIDA","PGR_24","PCMSO_12"]},
+    sug:["ESOC_VIDA"]},
  C:{nome:"eSocial – Por Número de Vidas",desc:"Faixas 1–100 / 101–180 / 181+",ref:"DOCUMENTAÇÃO LEGAL E GESTÃO DE ESOCIAL",tit:"DOCUMENTAÇÃO LEGAL & GESTÃO DO ESOCIAL",
     contratante:true,aprovCapa:true,prazo:"P1plus",fat:"F1",foro:"Itatiaiuçu / MG",emissor:"matriz",nf:false,rev:true,vig:true,rodape3:false,faixaVidas:true,
     sug:["ESOC_VIDA"]},
