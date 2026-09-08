@@ -41,7 +41,8 @@ Na janela de impressão do navegador:
 - **Margens:** `Nenhuma` (o layout já traz as margens e cabeçalhos embutidos)
 - **Gráficos de segundo plano:** ✅ **Marcado** (necessário para preservar cores das tabelas e cabeçalhos)
 
-> 📘 Guia completo de uso com todas as regras de negócio: [`docs/COMO_USAR.md`](docs/COMO_USAR.md)
+> 📘 Guia completo de uso com todas as regras de negócio: [`docs/COMO_USAR.md`](docs/COMO_USAR.md)  
+> 🎬 Vídeo tutorial passo a passo (4 min): [`docs/tutorial/tutorial-passo-a-passo.mp4`](docs/tutorial/tutorial-passo-a-passo.mp4) · [roteiro](docs/tutorial/ROTEIRO.md)
 
 ---
 
