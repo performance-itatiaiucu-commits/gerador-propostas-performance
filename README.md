@@ -5,7 +5,7 @@ Aplicação web desenvolvida para elaboração, pré-visualização em tempo rea
 A ferramenta está **disponível online** via GitHub Pages e também pode ser executada offline como arquivo único (`index.html`), sem necessidade de instalação, banco de dados ou dependências externas.
 
 [![Acessar Online](https://img.shields.io/badge/Acessar-Online-1F386E?style=for-the-badge&logo=github&logoColor=white)](https://performance-itatiaiucu-commits.github.io/gerador-propostas-performance/)
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-1.8-1F386E)](CHANGELOG.md)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-1.10-1F386E)](CHANGELOG.md)
 [![Status Online](https://img.shields.io/badge/GitHub_Pages-Online-7FCC0E)](#)
 [![Uso Offline](https://img.shields.io/badge/funciona-offline-04CCFF)](#)
 [![Dependências](https://img.shields.io/badge/depend%C3%AAncias-nenhuma-9A66CB)](#)
@@ -67,6 +67,7 @@ Na janela de impressão do navegador:
 - **Condições e Formas de Pagamento**: à vista, PIX (com verificação automática se a empresa é optante pelo Simples Nacional), cartão de crédito (2x a 6x) e faturamento (15, 20, 30, 60 dias ou personalizado).
 - **Prazos de Entrega Inteligentes**: 13 textos padronizados com seleção automática baseada nos serviços inseridos na proposta.
 - **Regras Automáticas do LTCAT**: inclusão automática das 7 cláusulas comerciais ao adicionar medições ambientais.
+- **Regras Automáticas de Atendimento**: seção **"Serviço de Transporte 'Leva e Traz'"** (entra automaticamente quando a proposta contém exames ocupacionais, com aviso de verificação para grupos menores que 3 colaboradores) e seção **"Atendimento In Loco"** (marcada quando os exames serão realizados nas instalações do cliente, com as exigências de espaço, agenda de 7 dias e infraestrutura elétrica STECK).
 - **Painel de Verificações**: aponta pendências e campos obrigatórios antes da impressão.
 - **Persistência Local**: salvamento automático do rascunho em edição e histórico de até 40 propostas salvas no navegador.
 
