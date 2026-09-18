@@ -4,6 +4,26 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
 
 ---
 
+## [1.10] — 2026-09-18
+
+### Adicionado
+- **2 novas regras no item "Regras Automáticas"** (cartão 5 do formulário),
+  ambas emitidas no PDF como seções próprias com numeração dinâmica, logo após
+  as Condições Comerciais:
+  - **Serviço de Transporte "Leva e Traz"** — entra **automaticamente** quando a
+    proposta contém exames ocupacionais (códigos `EX_*`); pode ser desmarcada
+    manualmente. O painel de Verificações avisa quando o total de exames fica
+    abaixo do mínimo de 3 colaboradores do serviço sem custo adicional.
+  - **Atendimento In Loco** — marcada quando os exames serão realizados nas
+    instalações da CONTRATANTE (agenda com antecedência mínima de 7 dias
+    corridos, espaço físico adequado, cabine audiométrica laudada quando
+    necessária e infraestrutura elétrica 220/127 V com tomada industrial STECK).
+- Compatibilidade com rascunhos antigos: propostas salvas antes da mudança
+  (sem as chaves `transp`/`inloco`) continuam funcionando, com as regras
+  resolvidos pelo modo automático.
+
+---
+
 ## [1.9] — 2026-09-01
 
 ### Alterado

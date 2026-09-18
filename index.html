@@ -218,7 +218,16 @@ const TXT={
  F2:`O montante relacionado aos serviços prestados será liquidado na forma de pagamento acordada entre as partes, conforme condições descritas nesta proposta.\nEventuais atrasos no pagamento geram encargos conforme índices legais e suspensão no atendimento, objeto deste instrumento.`,
  F3:`Fica definido como forma de pagamento negociada e aprovada entre as partes: emissão de boleto e envio de nota fiscal para faturamento após 30 dias da aprovação dos serviços.\nEventuais atrasos no pagamento geram encargos conforme índices legais e suspensão no atendimento, objeto deste instrumento.`,
  rev:`Todas as revisões ou alterações solicitadas até o prazo máximo de 30 dias da entrega dos serviços / programas serão realizadas sem nenhum acréscimo ao cliente; demais situações serão realizadas sob análise. O prazo de revisão não contempla a realização de inclusão de funções/cargos não informados anteriormente pela empresa cliente.\nToda inclusão de função realizada será analisada quanto ao preço de cobrança de acordo com a sua complexidade.`,
- vig:`A anuência no presente contrato dá ao CONTRATADO autorização para a realização dos serviços, mediante a concordância com as cláusulas pactuadas.\nO presente instrumento vigorará pelo prazo de 1 (um) ano, contado da data de sua assinatura, e ultrapassando o termo final sem manifestação das partes o contrato prorrogar-se-á por tempo indeterminado, podendo ser rescindido mediante aviso prévio de 30 dias.\nEm caso de rescisão do contrato, a CONTRATANTE pagará à CONTRATADA o saldo devedor mensal até o tempo restante de contrato e os exames realizados no mês de cancelamento.\nEm caso de descumprimento por uma das partes, a parte prejudicada poderá rescindi-lo unilateralmente, e a rescisão não isenta a CONTRATANTE no que diz respeito a quaisquer faturas em aberto referentes a serviços já realizados.`
+ vig:`A anuência no presente contrato dá ao CONTRATADO autorização para a realização dos serviços, mediante a concordância com as cláusulas pactuadas.\nO presente instrumento vigorará pelo prazo de 1 (um) ano, contado da data de sua assinatura, e ultrapassando o termo final sem manifestação das partes o contrato prorrogar-se-á por tempo indeterminado, podendo ser rescindido mediante aviso prévio de 30 dias.\nEm caso de rescisão do contrato, a CONTRATANTE pagará à CONTRATADA o saldo devedor mensal até o tempo restante de contrato e os exames realizados no mês de cancelamento.\nEm caso de descumprimento por uma das partes, a parte prejudicada poderá rescindi-lo unilateralmente, e a rescisão não isenta a CONTRATANTE no que diz respeito a quaisquer faturas em aberto referentes a serviços já realizados.`,
+ LEVA:`Para tornar o atendimento ocupacional mais ágil e conveniente, a PERFORMANCE OCUPACIONAL oferece o serviço de transporte "Leva e Traz" para colaboradores previamente agendados.
+Com transporte entre a portaria da CONTRATANTE e a clínica, ida e retorno, o serviço proporciona praticidade, organização e melhor aproveitamento da agenda, sem custo adicional para grupos de, no mínimo, três colaboradores.
+Agende o serviço com antecedência e ofereça aos seus colaboradores uma solução mais segura, eficiente e confortável para a realização dos exames ocupacionais.`,
+ INLOCO:`A PERFORMANCE OCUPACIONAL realizará os exames in loco, nas instalações da CONTRATANTE, com o objetivo de reduzir deslocamentos e minimizar impactos na produtividade dos colaboradores.
+O atendimento deverá ser agendado com antecedência mínima de 7 (sete) dias corridos, conforme disponibilidade de agenda e confirmação prévia da quantidade de colaboradores, dos exames necessários e das condições adequadas para sua realização.
+Para a execução dos exames de acuidade visual, avaliação clínica, eletrocardiograma, eletroencefalograma, espirometria e exames laboratoriais, a CONTRATANTE deverá disponibilizar espaço físico adequado, reservado, limpo, seguro e compatível com as exigências técnicas de cada procedimento.
+Caso seja necessária a utilização de cabine audiométrica devidamente laudada ou de estrutura adicional, eventual custo será informado previamente e cobrado separadamente, mediante aprovação da CONTRATANTE.
+Para a realização dos exames de raio-X, a CONTRATANTE deverá disponibilizar infraestrutura elétrica compatível e providenciar a energização da unidade móvel por meio de profissional devidamente habilitado. A alimentação deverá contemplar 2 (duas) fases e 1 (um) condutor de proteção/aterramento, considerando a utilização de equipamentos em 220 V e 127 V.
+A conexão será realizada por meio de tomada industrial padrão STECK, com cabeamento mínimo de 10 mm², conectado ao quadro de distribuição mais próximo possível da unidade móvel. A PERFORMANCE OCUPACIONAL fornecerá a extensão elétrica, com aproximadamente 15 (quinze) metros. A realização do exame estará condicionada à existência de condições físicas, elétricas e operacionais adequadas e seguras.`
 };
 /* ---- catálogo de prazos de entrega por programa ----
    'cods' liga o prazo aos itens do catálogo de serviços (marcação automática) */
@@ -400,7 +409,7 @@ function estadoInicial(){
     ghe:{ativo:false,linhas:[],dias:""},
     psico:{ativo:false,cargos:[],dataRef:new Date().toISOString().slice(0,10),local:""},
     obs:"",
-    blocos:{apresentacao:true,rev:null,vig:null,cond:null,nf:null}
+    blocos:{apresentacao:true,rev:null,vig:null,cond:null,nf:null,transp:null,inloco:null}
   };
 }
 function T(){return TIPOS[S.tipo];}
@@ -434,6 +443,9 @@ function calc(){
 }
 /* regra automática: há medições ambientais? */
 function temMedicao(){return S.itens.some(i=>i.med);}
+/* regra automática: a proposta traz exames ocupacionais? */
+function temExames(){return S.itens.some(i=>i.cod&&/^EX_/.test(i.cod));}
+function qtdExames(){return S.itens.filter(i=>i.cod&&/^EX_/.test(i.cod)).reduce((a,i)=>a+(Number(i.qtd)||0),0);}
 function temDeslocamento(){return S.itens.some(i=>i.desl);}
 function agentesMedidos(){
   const m={};
@@ -457,6 +469,10 @@ function validar(){
   if(!pagOK) v.push(["warn","Nenhuma forma de pagamento foi selecionada."]);
   if(!prazoEntregaTxt().trim()) v.push(["warn","Prazo de entrega não informado."]);
   if(temMedicao()&&!temDeslocamento()) v.push(["warn","Há medições ambientais sem item de Deslocamento — verifique se o custo está previsto."]);
+  if(bl("transp",temExames())){
+    const q=qtdExames();
+    if(q>0&&q<3) v.push(["warn",'Serviço de transporte "Leva e Traz": o atendimento sem custo adicional é para grupos de, no mínimo, 3 colaboradores — a proposta soma apenas '+q+' exame(s).']);
+  }
   if(S.pag.pix) v.push(["warn","Pagamento via PIX selecionado: confirme com o Setor Financeiro a retenção de impostos (empresas optantes pelo Simples Nacional possuem regra específica)."]);
   if(S.ghe.ativo&&S.ghe.linhas.length){
     const tg=totaisGHE(), am=agentesMedidos();
@@ -658,18 +674,23 @@ function renderForm(){
   `,S.itens.length+" itens");
 
   /* --- MEDIÇÕES / REGRAS AUTOMÁTICAS --- */
-  const med=temMedicao(), ags=agentesMedidos();
+  const med=temMedicao(), ags=agentesMedidos(), exm=temExames();
+  const badgeReg=[med?"LTCAT ativo":"", exm?"Leva e Traz":"", bl("inloco",false)?"In Loco":""].filter(Boolean).join(" · ");
   h+=card("regras","5 · Regras automáticas",`
     ${med?`<div class="alerta ok"><b>✓ Medições ambientais detectadas</b> — as <b>Condições Comerciais do LTCAT</b> (7 cláusulas: deslocamentos, manutenção do valor contratado, reprogramação, alterações de escopo etc.) serão incluídas automaticamente no PDF.<br>Agentes: ${Object.keys(ags).map(a=>`<span class="pill">${esc(a)} — ${ags[a]}</span>`).join("")}</div>`
         :`<div class="hint">Nenhuma medição ambiental nos itens. Ao adicionar um item do grupo <b>Medições Ambientais</b>, as cláusulas do LTCAT entram sozinhas.</div>`}
     <div style="margin-top:8px">
       ${chkBloco("cond","Condições Comerciais (7 cláusulas do LTCAT)",med||t.cond)}
+      ${chkBloco("transp",'Serviço de Transporte "Leva e Traz" (portaria ↔ clínica, ida e retorno)',exm)}
+      ${chkBloco("inloco","Atendimento In Loco (exames nas instalações da CONTRATANTE)",false)}
       ${chkBloco("nf","Bloco de emissão de Nota Fiscal (2 CNPJs)",t.nf)}
       ${chkBloco("rev","Considerações sobre revisões e alterações",t.rev)}
       ${chkBloco("vig","Prazo de vigência e rescisão (1 ano)",t.vig)}
       <label class="chk"><input type="checkbox" ${S.ghe.ativo?"checked":""} onchange="up('ghe.ativo',this.checked)">Incluir <b>Grupo de Exposição (GHE)</b>${t.ghe?" — padrão deste tipo":""}</label>
       <label class="chk"><input type="checkbox" ${S.psico.ativo?"checked":""} onchange="up('psico.ativo',this.checked)">Incluir <b>Relação de empregados por cargo</b> (psicossociais)${t.psico?" — padrão deste tipo":""}</label>
-    </div>`,med?"LTCAT ativo":"");
+    </div>
+    <div class="hint" style="margin-top:2px">A regra <b>Leva e Traz</b> entra sozinha quando a proposta contém exames ocupacionais. A regra <b>In Loco</b> é marcada quando os exames serão realizados nas instalações do cliente.</div>
+  `,badgeReg);
 
   /* --- GHE --- */
   if(S.ghe.ativo){
@@ -906,7 +927,7 @@ function setTipo(k){
   S.tipo=k; const t=TIPOS[k];
   S.prop.emissor=t.emissor;
   if(S.prop.foroAuto!==false) S.prop.foro=t.foro;
-  S.blocos={apresentacao:true,rev:null,vig:null,cond:null,nf:null};
+  S.blocos={apresentacao:true,rev:null,vig:null,cond:null,nf:null,transp:null,inloco:null};
   if(t.ghe) S.ghe.ativo=true;
   if(t.psico) S.psico.ativo=true;
   if(!S.itens.length&&t.sug) t.sug.forEach(addCod);
@@ -1058,7 +1079,8 @@ function renderPreview(){
   const ref=S.prop.ref||t.ref;
   const med=temMedicao();
   const usaCond=bl("cond",med||t.cond), usaNf=bl("nf",t.nf),
-        usaRev=bl("rev",t.rev), usaVig=bl("vig",t.vig);
+        usaRev=bl("rev",t.rev), usaVig=bl("vig",t.vig),
+        usaTransp=bl("transp",temExames()), usaInLoco=bl("inloco",false);
 
   /* monta lista de seções para numerar dinamicamente */
   const secs=[];
@@ -1068,6 +1090,8 @@ function renderPreview(){
   secs.push("objeto");
   if(S.ghe.ativo) secs.push("ghe");
   if(usaCond) secs.push("cond");
+  if(usaTransp) secs.push("transp");
+  if(usaInLoco) secs.push("inloco");
   secs.push("prazo");
   if(usaRev) secs.push("rev");
   secs.push("pagamento","faturamento");
@@ -1220,6 +1244,14 @@ function renderPreview(){
   if(usaCond){
     P.push(pg(`<h2 class="sec">${N("cond")}. CONDIÇÕES COMERCIAIS</h2>`+
       COND_LTCAT.map(([tt,tx])=>`<div class="clau"><b>${esc(tt)}:</b> ${esc(tx)}</div>`).join("")));
+  }
+
+  /* ---------- REGRAS DE ATENDIMENTO: TRANSPORTE "LEVA E TRAZ" / IN LOCO ---------- */
+  if(usaTransp||usaInLoco){
+    let r="";
+    if(usaTransp) r+=`<h2 class="sec">${N("transp")}. SERVIÇO DE TRANSPORTE "LEVA E TRAZ"</h2>${nl2p(TXT.LEVA)}`;
+    if(usaInLoco) r+=`<h2 class="sec"${usaTransp?' style="margin-top:9px"':""}>${N("inloco")}. ATENDIMENTO IN LOCO</h2>${nl2p(TXT.INLOCO)}`;
+    P.push(pg(r));
   }
 
   /* ---------- PRAZO + PAGAMENTO + FATURAMENTO (+rev/vig) + FORO ---------- */
