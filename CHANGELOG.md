@@ -4,6 +4,19 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
 
 ---
 
+## [1.11] — 2026-09-21
+
+### Alterado
+- **Rodapé das páginas** passa a exibir o **bairro** junto ao endereço das
+  unidades: Itatiaiuçu (Centro), Itabira (Centro) e São José do Rio Preto
+  (Redentora).
+- Endereço da unidade de **São José do Rio Preto** atualizado para
+  **Rua Ondina, 156 e 182** (rodapé e tabela "Nossas Unidades").
+- As colunas do rodapé agora se ajustam ao conteúdo, mantendo cada endereço em
+  uma única linha e a altura do rodapé inalterada.
+
+---
+
 ## [1.10] — 2026-09-18
 
 ### Adicionado
