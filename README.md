@@ -5,7 +5,7 @@ Aplicação web desenvolvida para elaboração, pré-visualização em tempo rea
 A ferramenta está **disponível online** via GitHub Pages e também pode ser executada offline como arquivo único (`index.html`), sem necessidade de instalação, banco de dados ou dependências externas.
 
 [![Acessar Online](https://img.shields.io/badge/Acessar-Online-1F386E?style=for-the-badge&logo=github&logoColor=white)](https://performance-itatiaiucu-commits.github.io/gerador-propostas-performance/)
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-1.10-1F386E)](CHANGELOG.md)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-1.11-1F386E)](CHANGELOG.md)
 [![Status Online](https://img.shields.io/badge/GitHub_Pages-Online-7FCC0E)](#)
 [![Uso Offline](https://img.shields.io/badge/funciona-offline-04CCFF)](#)
 [![Dependências](https://img.shields.io/badge/depend%C3%AAncias-nenhuma-9A66CB)](#)

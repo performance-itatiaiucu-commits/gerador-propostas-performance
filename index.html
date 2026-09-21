@@ -106,7 +106,7 @@ table.it td.num input{text-align:right}
 .pfoot::before{content:"";position:absolute;top:-2px;left:0;width:38%;height:2px;background:linear-gradient(90deg,var(--ciano),var(--verde),var(--roxo))}
 .pfoot .lg{flex:0 0 auto;display:flex;align-items:center}
 .pfoot .lg img{height:34px;object-fit:contain;padding-right:7px}
-.pfoot .u{flex:1}
+.pfoot .u{flex:1 1 auto} /* colunas crescem conforme o conteúdo: evita quebrar o endereço com bairro */
 .pfoot b{display:block;font-size:7.1pt;color:var(--azul)}
 .site{text-align:center;font-size:7.4pt;font-weight:700;color:var(--azul);letter-spacing:.04em;margin-top:3px}
 h2.sec{font-size:11pt;color:var(--azul);margin:0 0 7px;padding:0 0 4px 9px;border-bottom:2px solid var(--azul);border-left:5px solid var(--ciano);text-transform:uppercase;letter-spacing:.02em}
@@ -187,7 +187,7 @@ const UNIDADES=[
  {n:"PERFORMANCE ITATIAIUÇU / MG",e:"Praça Antônio Quirino da Silva, 28 – Centro – Itatiaiuçu/MG – CEP 35.685-000",t:"(31) 3572-1818 / (31) 3572-1221"},
  {n:"PERFORMANCE ITABIRA / MG",e:"Av. Daniel Jardim de Grisolia, 85, 1° Andar – Centro – Itabira/MG – CEP 35.900-001",t:"(31) 3840-1883 / (31) 99757-1883"},
  {n:"PERFORMANCE ITAGUARA / MG",e:"Rua Padre Gregório, 196, 2º Andar – Centro – Itaguara/MG – CEP 35.488-000",t:"(31) 3572-1466"},
- {n:"PERFORMANCE SÃO JOSÉ DO RIO PRETO / SP",e:"Rua Ondina, 182 – Redentora – São José do Rio Preto/SP – CEP 15.015-205",t:"(17) 3218-8036 / (17) 3212-8149"}
+ {n:"PERFORMANCE SÃO JOSÉ DO RIO PRETO / SP",e:"Rua Ondina, 156 e 182 – Redentora – São José do Rio Preto/SP – CEP 15.015-205",t:"(17) 3218-8036 / (17) 3212-8149"}
 ];
 const EMISSORES={
  filial:{lbl:"Filial Itaguara/MG — serviços de engenharia e documentação legal",razao:"ROBSON LUCIANO SIQUEIRA SICA",fant:"PERFORMANCE OCUPACIONAL",cnpj:"27.708.974/0001-80",cid:"Itaguara/MG",foro:"Itaúna / MG"},
@@ -1068,7 +1068,7 @@ function foot(){
   const t=T();
   const u=t.rodape3?UNIDADES.filter(x=>/ITATIAIUÇU|ITABIRA|RIO PRETO/.test(x.n)):[];
   return `<div class="pfoot"><div class="lg"><img src="${LOGO_POP}" alt=""></div>
-    ${u.map(x=>`<div class="u"><b>${esc(x.n.replace("PERFORMANCE ",""))}</b>${esc(x.t)}<br>${esc(x.e.split(" – ")[0])}</div>`).join("")}</div>
+    ${u.map(x=>`<div class="u"><b>${esc(x.n.replace("PERFORMANCE ",""))}</b>${esc(x.t)}<br>${esc(x.e.split(" – ").slice(0,2).join(" – "))}</div>`).join("")}</div>
     <div class="site">${CONTRATADA.site}</div>`;
 }
 function pg(inner){ _np++; return `<div class="page">${head()}<div class="content">${inner}</div>${foot()}</div>`; }
