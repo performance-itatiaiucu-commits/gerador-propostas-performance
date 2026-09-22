@@ -71,13 +71,23 @@ Só o aparelho que **publica** precisa de uma configuração, feita uma vez:
 
 > ⚠️ O token permite escrita no repositório: configure apenas nos aparelhos de quem pode alterar preços, e gere um novo se trocar de aparelho.
 
-> 💡 **Erro 409 ao publicar:** o app aguarda 1,2 s e tenta novamente uma vez,
-> buscando a versão atual do arquivo. Durante o envio, o botão mostra
-> **☁ Publicando…** e fica desabilitado. Se o conflito persistir, aguarde,
-> clique em **🔄 Verificar** e publique novamente. A mensagem exibe o motivo
-> retornado pelo GitHub; se indicar proteção da branch, um administrador deve
-> liberar commits diretos na `main` em **Settings → Branches**. Para erros
-> 401/403, configure um novo token com **Contents: Read and write** em **⚙ Acesso**.
+> ⚠️ **Token ≠ nome:** o token vai **somente** em **⚙ Acesso**. Quando o app
+> pedir **"Seu nome"**, digite só o nome (ex.: Maria). Se colar o token no
+> nome, o GitHub bloqueia a publicação com *Secret detected in content*.
+
+> 💡 **Erro 409 ao publicar:**
+> - **Secret detected / rule violations** — algo parecido com um token entrou
+>   no conteúdo (quase sempre o token colado no nome). Confira **⚙ Acesso**,
+>   apague o token do nome se estiver lá, e publique de novo. O app **não**
+>   tenta de novo sozinho nesse caso.
+> - **Conflito de versão (SHA)** — o app aguarda 1,2 s e tenta novamente uma
+>   vez. Se persistir, clique em **🔄 Verificar** e publique de novo.
+> - **Branch protegida** — um administrador deve liberar commits diretos na
+>   `main` em **Settings → Branches**.
+> - **401/403** — configure um novo token com **Contents: Read and write** em
+>   **⚙ Acesso**.
+>
+> Durante o envio, o botão mostra **☁ Publicando…** e fica desabilitado.
 
 
 ## Identidade visual aplicada
