@@ -210,7 +210,7 @@ table.pp td input{width:110px;padding:5px 7px;font-size:12.5px;text-align:right}
     <input id="ppBusca" class="ppBusca" placeholder="🔎 Buscar código ou serviço…" oninput="renderPrecos()">
     <button class="btn ghost" onclick="restaurarPrecos()" title="Devolver todos os valores padrão do catálogo">↺ Padrão</button>
     <button class="btn ghost" onclick="salvarPrecos()" title="Salva apenas neste aparelho/navegador">💾 Só neste aparelho</button>
-    <button class="btn green" onclick="publicarPrecos()" title="Publica a tabela para TODOS os aparelhos">☁ Publicar para todos</button>
+    <button id="btnPublicar" class="btn green" onclick="publicarPrecos()" title="Publica a tabela para TODOS os aparelhos">☁ Publicar para todos</button>
     <button class="btn" onclick="fecharPrecos()">✕ Voltar</button>
     <div id="ppSync" class="ppSyncLine"></div>
   </div>
@@ -1623,8 +1623,20 @@ function b64encodeUnicode(s){
   for(let i=0;i<b.length;i++) t+=String.fromCharCode(b[i]);
   return btoa(t);
 }
+/* motivo devolvido pela API (errors pode conter strings ou objetos) */
+async function ghMsgErro(resp){
+  try{
+    const j=await resp.json();
+    const erros=Array.isArray(j.errors)?j.errors.map(e=>typeof e==="string"?e:(e&&e.message)||JSON.stringify(e)):[];
+    return [j.message,...erros].filter(Boolean).join("; ");
+  }catch(e){ return ""; }
+}
 /* ---------- PUBLICAÇÃO: grava o precos.json no repositório (vale p/ todos) ---------- */
 async function publicarPrecos(){
+  if(precosSync.estado==="publicando"){
+    alert("Publicação em andamento — aguarde concluir.");
+    return;
+  }
   CAT.forEach(c=>{ ppEdicao[c.c]=ppParse(ppEdicao[c.c]); });
   /* a tabela da tela vira a nova tabela compartilhada (diff vs. padrão) */
   const prices={};
@@ -1652,25 +1664,50 @@ ${resumo}.
 
 A atualização chega aos outros aparelhos em 1–2 minutos (tempo de publicação do site).`)) return;
   precosSync={estado:"publicando",detalhe:""};
-  renderPpSync();
+  const btn=document.getElementById("btnPublicar");
+  const rotulo=btn?btn.textContent:"☁ Publicar para todos";
+  if(btn){ btn.disabled=true; btn.textContent="☁ Publicando…"; }
   try{
+    renderPpSync();
     const api=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
     const headers={Accept:"application/vnd.github+json",Authorization:`Bearer ${token}`};
-    let sha=null;
-    const g=await fetch(api+`?ref=${GH_BRANCH}`,{headers});
-    if(g.ok){ const j=await g.json(); sha=j.sha||null; }
-    else if(g.status!==404){ throw new Error("Falha ao ler a tabela atual no GitHub (HTTP "+g.status+")."); }
-    const meta={updatedAt:new Date().toISOString(),updatedBy:autor||"app",app:"gerador-propostas-performance"};
-    const corpo={message:`💲 Atualiza tabela de preços compartilhada${autor?` (${autor})`:""}`,content:b64encodeUnicode(JSON.stringify({_meta:meta,prices:prices},null,2)),branch:GH_BRANCH};
-    if(sha) corpo.sha=sha;
-    const p=await fetch(api,{method:"PUT",headers:Object.assign({"Content-Type":"application/json"},headers),body:JSON.stringify(corpo)});
-    if(p.status===401||p.status===403){
-      try{ localStorage.removeItem(GH_TOKEN_LS); }catch(e){}
-      throw new Error("Token rejeitado pelo GitHub. Gere um novo token (permissão Contents: Read and write no repositório "+GH_REPO+") e configure em ⚙ Acesso.");
+    async function erroGithub(resp){
+      const motivo=await ghMsgErro(resp);
+      const detalhe=motivo||"motivo não informado";
+      if(resp.status===401||resp.status===403){
+        try{ localStorage.removeItem(GH_TOKEN_LS); }catch(e){}
+        return new Error("Token rejeitado pelo GitHub (HTTP "+resp.status+"): "+detalhe+". Gere um novo token (permissão Contents: Read and write no repositório "+GH_REPO+") e configure em ⚙ Acesso.");
+      }
+      if(resp.status===409){
+        if(/protect/i.test(motivo))
+          return new Error("O GitHub bloqueou a publicação (HTTP 409). Libere commits diretos na branch "+GH_BRANCH+" em Settings → Branches. Motivo: "+detalhe);
+        return new Error("Conflito ao publicar (HTTP 409): outra publicação pode ter ocorrido. Aguarde um pouco, clique em 🔄 Verificar e publique novamente. Motivo: "+detalhe);
+      }
+      return new Error("O GitHub devolveu o erro HTTP "+resp.status+": "+detalhe);
     }
-    if(!p.ok) throw new Error("O GitHub devolveu o erro HTTP "+p.status+". Tente novamente.");
+    async function shaAtual(){
+      const g=await fetch(api+`?ref=${GH_BRANCH}`,{headers,cache:"no-store"});
+      if(g.status===404) return null; /* arquivo ainda não existe */
+      if(!g.ok) throw await erroGithub(g);
+      const j=await g.json();
+      return j.sha||null;
+    }
+    async function tentaPut(){
+      const sha=await shaAtual(); /* SHA fresco em CADA tentativa */
+      const meta={updatedAt:new Date().toISOString(),updatedBy:autor||"app",app:"gerador-propostas-performance"};
+      const corpo={message:`💲 Atualiza tabela de preços compartilhada${autor?` (${autor})`:""}`,content:b64encodeUnicode(JSON.stringify({_meta:meta,prices:prices},null,2)),branch:GH_BRANCH};
+      if(sha) corpo.sha=sha;
+      const resp=await fetch(api,{method:"PUT",headers:Object.assign({"Content-Type":"application/json"},headers),body:JSON.stringify(corpo)});
+      return {resp,meta};
+    }
+    let r=await tentaPut();
+    if(r.resp.status===409){
+      await new Promise(resolve=>setTimeout(resolve,1200));
+      r=await tentaPut(); /* apenas UMA repetição automática */
+    }
+    if(!r.resp.ok) throw await erroGithub(r.resp);
     /* sucesso: adota como compartilhado e limpa ajustes locais (viraram redundantes) */
-    precosShared={prices:prices,meta:meta};
+    precosShared={prices:prices,meta:r.meta};
     try{ localStorage.setItem(PRECOS_SHARED_LS,JSON.stringify(precosShared)); localStorage.removeItem(PRECOS_LS); }catch(e){}
     precosSync={estado:"ok",detalhe:""};
     aplicarPrecos();
@@ -1688,6 +1725,8 @@ A atualização chega aos outros aparelhos em 1–2 minutos (tempo de publicaç�
     alert(`Não foi possível publicar:
 
 ${String((err&&err.message)||err)}`);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=rotulo; }
   }
 }
 document.addEventListener("keydown",e=>{

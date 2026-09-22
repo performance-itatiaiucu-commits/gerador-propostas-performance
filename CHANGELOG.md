@@ -4,6 +4,18 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
 
 ---
 
+## [1.13.1] — 2026-09-22
+
+### Corrigido
+- **Erro 409 ao publicar preços**: uma nova tentativa automática após 1,2 s,
+  buscando o SHA atualizado do arquivo; trava contra clique duplo e botão
+  desabilitado com o rótulo **☁ Publicando…** durante o envio.
+- **Mensagens de erro com o motivo retornado pelo GitHub**: orientações para
+  renovar o token (401/403), liberar commits em branch protegida ou verificar
+  a tabela antes de republicar em caso de conflito persistente (409).
+
+---
+
 ## [1.13] — 2026-09-22
 
 ### Adicionado
