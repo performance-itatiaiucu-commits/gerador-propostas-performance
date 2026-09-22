@@ -51,12 +51,25 @@ Ao clicar em **Baixar PDF** abre a janela de impressão. Configure:
 No **canto inferior direito** da tela há um botão **💲** discreto (quase invisível; ganha destaque ao passar o mouse). Ele abre a **tela de preços** com todo o catálogo de serviços e produtos (88 itens em 7 grupos):
 
 - Edite o valor diretamente na tabela (aceita vírgula: `55,90`) e use a **busca** por código ou serviço.
-- **💾 Salvar preços** aplica os valores à **criação das propostas**: o catálogo da seção "4 · Itens negociados" e os itens novos adicionados a partir dele já usam os preços atualizados.
-- **↺ Padrão** devolve os valores padrão do catálogo embutido no código (só vira definitivo ao salvar).
-- Linhas aparecem com **"● alterado"** (editado e ainda não salvo) ou **"💾 salvo"** (preço já persistido, diferente do padrão).
+- **☁ Publicar para todos** aplica os valores em **todos os aparelhos**: quem abrir o app depois da publicação (com internet) já usa os novos preços na **criação das propostas** (catálogo da seção "4 · Itens negociados" e itens novos). A atualização chega em 1–2 minutos.
+- **💾 Só neste aparelho** salva um ajuste apenas no aparelho atual (não afeta os outros).
+- **↺ Padrão** devolve os valores padrão do catálogo embutido no código (só vira definitivo ao salvar/publicar).
+- Linhas aparecem com **"● alterado"** (editado e ainda não salvo/publicado), **"☁ compartilhado"** (preço publicado, igual em todos os aparelhos) ou **"💾 neste aparelho"** (ajuste local; passe o mouse para ver o valor publicado).
+- A **barra de sincronização** no topo mostra o estado (☁ Sincronizado ✓ / ⚠ Sem conexão), a data e o autor da última publicação, e os botões **🔄 Verificar** (buscar agora a tabela publicada) e **⚙ Acesso** (token do GitHub).
 - Itens **já inseridos** em uma proposta em edição não são alterados — apenas as novas propostas passam a usar os novos preços.
-- Os preços ficam salvos no navegador (mesma persistência do rascunho e do histórico). Limpar os dados do navegador devolve a tabela padrão.
+- Sem internet, o app usa os **últimos preços compartilhados** conhecidos. Limpar os dados do navegador apaga o ajuste local, mas a tabela publicada continua valendo (basta reconectar).
 - Tecla **Esc** fecha a tela (com aviso se houver alterações não salvas).
+
+### Publicar preços para todos (configuração única)
+Só o aparelho que **publica** precisa de uma configuração, feita uma vez:
+
+1. No navegador, acesse **github.com → sua conta → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**.
+2. Em **Repository access**, escolha **Only select repositories** e selecione `gerador-propostas-performance`.
+3. Em **Permissions → Contents**, marque **Read and write** e gere o token (ele começa com `github_pat_`).
+4. Na tela 💲, clique em **⚙ Acesso** e cole o token. Pronto: o botão **☁ Publicar para todos** passa a funcionar neste aparelho.
+5. Os **demais aparelhos não precisam de nada** — basta abrir o app com internet.
+
+> ⚠️ O token permite escrita no repositório: configure apenas nos aparelhos de quem pode alterar preços, e gere um novo se trocar de aparelho.
 
 
 ## Identidade visual aplicada
@@ -250,6 +263,8 @@ O catálogo (`const CAT=[`) foi **totalmente substituído** pela tabela oficial
   (os antigos `PPRA`, `PCMSO15` e `PACOTE` deixaram de existir).
 
 ### Como alterar um preço
+> 💡 Recomendado: use a tela 💲 → **☁ Publicar para todos** — os preços publicados (arquivo `precos.json`) valem para todos os aparelhos sem mexer no código. A edição abaixo só é necessária para mudar a tabela *padrão* ou acrescentar serviços novos.
+
 Localize `const CAT=[` e edite o campo `v:` do item desejado. Exemplo:
 
 ```js
