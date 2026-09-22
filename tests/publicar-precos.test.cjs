@@ -8,11 +8,19 @@ const html=readFileSync(require('node:path').join(__dirname,'../index.html'),'ut
 const source=html.slice(html.indexOf('function b64encodeUnicode('),html.indexOf('document.addEventListener("keydown",e=>{',html.indexOf('function b64encodeUnicode(')));
 const response=(status,data={})=>({status,ok:status>=200&&status<300,json:async()=>data});
 const get=()=>response(200,{sha:'sha-original'});
-function setup(responses){
+const TOKEN_FAKE='github_pat_abcdefghijklmnopqrstuvwxyz0123456789ABCDEF';
+function setup(responses,opts={}){
   const button={disabled:false,textContent:'☁ Publicar para todos'};
-  const storage=new Map([['token','fake-token'],['autor','José'],['local','{"A":20}']]);
+  const storage=new Map([
+    ['token','fake-token'],
+    ['autor',opts.autor!==undefined?opts.autor:'José'],
+    ['local','{"A":20}']
+  ]);
+  if(opts.semAutor) storage.delete('autor');
+  if(opts.semToken) storage.delete('token');
   const calls=[],alerts=[],delays=[],renders=[];
   let clock=0;
+  const prompts=opts.prompts?opts.prompts.slice():[];
   const ctx=vm.createContext({
     TextEncoder,btoa,Date:class extends Date {constructor(){super(1750000000000+clock++*1200);}},
     CAT:[{c:'A',v:10}],CAT_ORIG:{A:10},ppEdicao:{A:20},ppAbertura:{A:10},
@@ -20,9 +28,14 @@ function setup(responses){
     GH_TOKEN_LS:'token',GH_AUTOR_LS:'autor',PRECOS_SHARED_LS:'cache',PRECOS_LS:'local',
     GH_OWNER:'owner',GH_REPO:'repo',GH_BRANCH:'main',GH_PATH:'precos.json',
     ppParse:Number,ppTemMudancas:()=>true,
-    localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
+    localStorage:{getItem:k=>storage.has(k)?storage.get(k):null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
     document:{getElementById:id=>id==='btnPublicar'?button:null},
-    confirm:()=>true,prompt:()=>{throw Error('Unexpected prompt');},alert:m=>alerts.push(m),
+    confirm:()=>true,
+    prompt:()=>{
+      if(!prompts.length) throw Error('Unexpected prompt');
+      return prompts.shift();
+    },
+    alert:m=>alerts.push(m),
     renderPpSync:()=>{},renderPrecos:()=>renders.push('precos'),render:()=>renders.push('app'),
     aplicarPrecos:()=>{ctx.CAT[0].v=ctx.precosShared.prices.A;},
     setTimeout:(fn,ms)=>{delays.push(ms); fn();},
@@ -50,6 +63,9 @@ function failed(h){
   assert.equal(h.storage.has('cache'),false);
   assert.equal(JSON.stringify(h.ctx.precosShared.prices),'{}');
 }
+function metaFromPut(call){
+  return JSON.parse(Buffer.from(JSON.parse(call.body).content,'base64').toString('utf8'))._meta;
+}
 
 test('botão de publicação tem ID e handler',()=>{
   assert.match(html,/<button id="btnPublicar"[^>]*onclick="publicarPrecos\(\)"/);
@@ -59,6 +75,16 @@ test('ghMsgErro concatena message e errors; tolera JSON inválido',async()=>{
   assert.equal(await ctx.ghMsgErro(response(422,{message:'Validation',errors:['texto',{message:'detalhe'},{code:'invalid'}]})), 'Validation; texto; detalhe; {"code":"invalid"}');
   assert.equal(await ctx.ghMsgErro({json:async()=>{throw Error('not JSON');}}),'');
   assert.equal(await ctx.ghMsgErro(response(500,{})),'');
+});
+test('pareceSegredo e sanitizarAutor bloqueiam tokens no nome',()=>{
+  const {ctx}=setup([]);
+  assert.equal(ctx.pareceSegredo(TOKEN_FAKE),true);
+  assert.equal(ctx.pareceSegredo('ghp_abcdefghijklmnopqrstuvwxyz0123'),true);
+  assert.equal(ctx.pareceSegredo('Maria Silva'),false);
+  assert.equal(ctx.sanitizarAutor('Maria Silva'),'Maria Silva');
+  assert.equal(ctx.sanitizarAutor(TOKEN_FAKE),'');
+  assert.equal(ctx.sanitizarAutor('Maria '+TOKEN_FAKE),'Maria');
+  assert.equal(ctx.sanitizarAutor('  '), '');
 });
 test('sucesso mantém cache, limpa local e atualiza catálogo/renderização',async()=>{
   const h=setup([get(),response(200)]);
@@ -71,9 +97,10 @@ test('sucesso mantém cache, limpa local e atualiza catálogo/renderização',as
   assert.equal(JSON.parse(h.storage.get('cache')).prices.A,20);
   assert.deepEqual(h.renders,['precos','app']);
   assert.deepEqual(h.delays,[]);
+  assert.equal(metaFromPut(h.calls[1]).updatedBy,'José');
 });
 test('409 repete uma vez após 1200ms, com SHA fresco e meta vencedora',async()=>{
-  const h=setup([get(),response(409),response(200,{sha:'sha-novo'}),response(200)]);
+  const h=setup([get(),response(409,{message:'sha mismatch'}),response(200,{sha:'sha-novo'}),response(200)]);
   await h.ctx.publicarPrecos();
   restored(h);
   assert.deepEqual(h.delays,[1200]);
@@ -122,19 +149,57 @@ for(const status of [401,403]) for(const stage of ['GET','PUT']){
     assert.deepEqual(h.delays,[]);
   });
 }
-for(const protectedBranch of [true,false]){
-  test(`409 persistente: ${protectedBranch?'branch protegida':'conflito concorrente'}`,async()=>{
-    const motivo=protectedBranch?'Branch PROTECTED':'sha does not match';
-    const h=setup([get(),response(409),get(),response(409,{message:'Conflict',errors:[{message:motivo}]})]);
-    await h.ctx.publicarPrecos();
-    failed(h);
-    assert.equal(h.calls.length,4);
-    assert.deepEqual(h.delays,[1200]);
-    assert.match(h.alerts[0],protectedBranch?/Settings → Branches/:/🔄 Verificar/);
-    assert.ok(h.alerts[0].includes(motivo));
-    assert.equal(h.storage.has('token'),true);
-  });
-}
+test('409 persistente: branch protegida',async()=>{
+  const motivo='Cannot update protected branch';
+  const h=setup([get(),response(409,{message:'Conflict',errors:[{message:'sha does not match'}]}),get(),response(409,{message:'Conflict',errors:[{message:motivo}]})]);
+  await h.ctx.publicarPrecos();
+  failed(h);
+  assert.equal(h.calls.length,4);
+  assert.deepEqual(h.delays,[1200]);
+  assert.match(h.alerts[0],/Settings → Branches/);
+  assert.ok(h.alerts[0].includes(motivo));
+  assert.equal(h.storage.has('token'),true);
+});
+test('409 persistente: conflito concorrente',async()=>{
+  const motivo='sha does not match';
+  const h=setup([get(),response(409,{message:'Conflict'}),get(),response(409,{message:'Conflict',errors:[{message:motivo}]})]);
+  await h.ctx.publicarPrecos();
+  failed(h);
+  assert.equal(h.calls.length,4);
+  assert.deepEqual(h.delays,[1200]);
+  assert.match(h.alerts[0],/🔄 Verificar/);
+  assert.ok(h.alerts[0].includes(motivo));
+  assert.equal(h.storage.has('token'),true);
+});
+test('409 secret scanning: sem retry e mensagem orienta ⚙ Acesso',async()=>{
+  const h=setup([get(),response(409,{message:'Repository rule violations found',errors:['Secret detected in content']})]);
+  await h.ctx.publicarPrecos();
+  failed(h);
+  assert.equal(h.calls.length,2); /* GET + PUT, sem 2ª tentativa */
+  assert.deepEqual(h.delays,[]);
+  assert.match(h.alerts[0],/segredo/);
+  assert.match(h.alerts[0],/⚙ Acesso/);
+  assert.match(h.alerts[0],/Secret detected in content/);
+  assert.equal(h.storage.has('token'),true);
+});
+test('autor salvo com token é limpo e payload usa "app"',async()=>{
+  /* lerAutorSalvo remove o token; prompt vazio → updatedBy "app" */
+  const h=setup([get(),response(200)],{autor:TOKEN_FAKE,prompts:['']});
+  await h.ctx.publicarPrecos();
+  restored(h);
+  assert.equal(h.storage.has('autor'),false); /* token removido do storage */
+  assert.equal(metaFromPut(h.calls[1]).updatedBy,'app');
+  assert.match(JSON.parse(h.calls[1].body).message,/preços compartilhada$/); /* sem (token) */
+});
+test('prompt com token no nome aborta antes do envio',async()=>{
+  const h=setup([],{semAutor:true,prompts:[TOKEN_FAKE]});
+  await h.ctx.publicarPrecos();
+  restored(h);
+  assert.equal(h.calls.length,0);
+  assert.match(h.alerts[0],/token do GitHub/);
+  assert.equal(h.ctx.precosSync.estado,'ok');
+  assert.equal(h.storage.has('autor'),false);
+});
 test('outros erros incluem HTTP e motivo sem retry',async()=>{
   const h=setup([get(),response(422,{message:'Validation Failed',errors:['invalid content']})]);
   await h.ctx.publicarPrecos();

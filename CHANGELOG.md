@@ -4,6 +4,20 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
 
 ---
 
+## [1.13.2] — 2026-09-22
+
+### Corrigido
+- **Erro 409 "Secret detected in content" ao publicar preços**: o GitHub
+  bloqueava a gravação do `precos.json` via *push protection* quando algo
+  parecido com um token/chave entrava no conteúdo (caso mais comum: token
+  colado no campo **"Seu nome"** em vez de em **⚙ Acesso**). O app agora:
+  - reconhece o bloqueio por segredo e **não repete** a tentativa (retry não
+    resolve esse caso);
+  - exibe orientação clara: token só em **⚙ Acesso**, nome só com o nome;
+  - sanitiza o autor antes de gravar — tokens salvos por engano no nome são
+    removidos e o payload usa `"app"` no lugar;
+  - recusa o envio se o usuário colar um token no prompt do nome.
+
 ## [1.13.1] — 2026-09-22
 
 ### Corrigido

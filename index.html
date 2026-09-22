@@ -1631,6 +1631,40 @@ async function ghMsgErro(resp){
     return [j.message,...erros].filter(Boolean).join("; ");
   }catch(e){ return ""; }
 }
+/* detecta strings que o push protection do GitHub trata como segredo (token colado no nome, etc.) */
+function pareceSegredo(s){
+  const t=String(s||"");
+  if(/github_pat_[A-Za-z0-9_]{20,}/i.test(t)) return true;
+  if(/gh[pousr]_[A-Za-z0-9_]{20,}/i.test(t)) return true;
+  if(/Bearer\s+[A-Za-z0-9._\-]{20,}/i.test(t)) return true;
+  return false;
+}
+/* nome do autor que vai no precos.json / mensagem do commit — nunca um token */
+function sanitizarAutor(nome){
+  let a=String(nome||"").trim();
+  if(!a) return "";
+  /* remove trechos que parecem token; se sobrar só lixo, descarta */
+  a=a.replace(/github_pat_[A-Za-z0-9_]{10,}/gi,"")
+     .replace(/gh[pousr]_[A-Za-z0-9_]{10,}/gi,"")
+     .replace(/Bearer\s+[A-Za-z0-9._\-]{10,}/gi,"")
+     .replace(/\s+/g," ").trim();
+  if(!a || pareceSegredo(a)) return "";
+  if(a.length>80) a=a.slice(0,80).trim();
+  return a;
+}
+function lerAutorSalvo(){
+  const raw=localStorage.getItem(GH_AUTOR_LS)||"";
+  const limpo=sanitizarAutor(raw);
+  if(raw && !limpo){
+    try{ localStorage.removeItem(GH_AUTOR_LS); }catch(e){}
+  }else if(raw && limpo!==raw.trim()){
+    try{ localStorage.setItem(GH_AUTOR_LS,limpo); }catch(e){}
+  }
+  return limpo;
+}
+function ghEhBloqueioSegredo(motivo){
+  return /secret|push protection|rule violations/i.test(String(motivo||""));
+}
 /* ---------- PUBLICAÇÃO: grava o precos.json no repositório (vale p/ todos) ---------- */
 async function publicarPrecos(){
   if(precosSync.estado==="publicando"){
@@ -1652,9 +1686,14 @@ Configurar agora?`)) return;
     token=configurarToken();
     if(!token) return;
   }
-  let autor=localStorage.getItem(GH_AUTOR_LS)||"";
+  let autor=lerAutorSalvo();
   if(!autor){
-    autor=(prompt("Seu nome (aparece no histórico da tabela compartilhada):",autor)||"").trim();
+    const digitado=prompt("Seu nome (aparece no histórico da tabela compartilhada).\n\n⚠️ Digite SÓ o nome (ex.: Maria). NÃO cole o token do GitHub aqui — o token vai em ⚙ Acesso.","")||"";
+    if(pareceSegredo(digitado)){
+      alert("Parece que você colou o token do GitHub no campo do nome.\n\n• Token → configure em ⚙ Acesso\n• Nome → apenas o seu nome (ex.: Maria)\n\nNada foi publicado.");
+      return;
+    }
+    autor=sanitizarAutor(digitado);
     if(autor) try{ localStorage.setItem(GH_AUTOR_LS,autor); }catch(e){}
   }
   const resumo=nAlt?`${nAlt} preço(s) diferente(s) do padrão`:"tabela igual ao padrão (limpa os preços publicados)";
@@ -1671,14 +1710,17 @@ A atualização chega aos outros aparelhos em 1–2 minutos (tempo de publicaç�
     renderPpSync();
     const api=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
     const headers={Accept:"application/vnd.github+json",Authorization:`Bearer ${token}`};
-    async function erroGithub(resp){
-      const motivo=await ghMsgErro(resp);
+    /* motivoPre: quando o corpo da Response já foi lido (ex.: checagem do 409) */
+    async function erroGithub(resp,motivoPre){
+      const motivo=motivoPre!=null?motivoPre:await ghMsgErro(resp);
       const detalhe=motivo||"motivo não informado";
       if(resp.status===401||resp.status===403){
         try{ localStorage.removeItem(GH_TOKEN_LS); }catch(e){}
         return new Error("Token rejeitado pelo GitHub (HTTP "+resp.status+"): "+detalhe+". Gere um novo token (permissão Contents: Read and write no repositório "+GH_REPO+") e configure em ⚙ Acesso.");
       }
       if(resp.status===409){
+        if(ghEhBloqueioSegredo(motivo))
+          return new Error("O GitHub bloqueou a publicação (HTTP 409): detectou algo que parece um segredo (token/chave) no conteúdo.\n\nCausa mais comum: o token do GitHub foi colado no campo \"Seu nome\" (ou junto do nome). O token deve ir só em ⚙ Acesso; no nome digite apenas o nome (ex.: Maria).\n\nO que fazer:\n1) Clique em ⚙ Acesso e confira o token.\n2) Se o nome tiver token, apague e digite só o nome.\n3) Publique de novo.\n\nMotivo: "+detalhe);
         if(/protect/i.test(motivo))
           return new Error("O GitHub bloqueou a publicação (HTTP 409). Libere commits diretos na branch "+GH_BRANCH+" em Settings → Branches. Motivo: "+detalhe);
         return new Error("Conflito ao publicar (HTTP 409): outra publicação pode ter ocorrido. Aguarde um pouco, clique em 🔄 Verificar e publique novamente. Motivo: "+detalhe);
@@ -1694,18 +1736,25 @@ A atualização chega aos outros aparelhos em 1–2 minutos (tempo de publicaç�
     }
     async function tentaPut(){
       const sha=await shaAtual(); /* SHA fresco em CADA tentativa */
-      const meta={updatedAt:new Date().toISOString(),updatedBy:autor||"app",app:"gerador-propostas-performance"};
-      const corpo={message:`💲 Atualiza tabela de preços compartilhada${autor?` (${autor})`:""}`,content:b64encodeUnicode(JSON.stringify({_meta:meta,prices:prices},null,2)),branch:GH_BRANCH};
+      const autorLimpo=sanitizarAutor(autor)||"app"; /* nunca envia token no JSON/commit */
+      const meta={updatedAt:new Date().toISOString(),updatedBy:autorLimpo,app:"gerador-propostas-performance"};
+      const corpo={message:`💲 Atualiza tabela de preços compartilhada${autorLimpo!=="app"?` (${autorLimpo})`:""}`,content:b64encodeUnicode(JSON.stringify({_meta:meta,prices:prices},null,2)),branch:GH_BRANCH};
       if(sha) corpo.sha=sha;
       const resp=await fetch(api,{method:"PUT",headers:Object.assign({"Content-Type":"application/json"},headers),body:JSON.stringify(corpo)});
       return {resp,meta};
     }
     let r=await tentaPut();
+    let motivo409=null;
     if(r.resp.status===409){
-      await new Promise(resolve=>setTimeout(resolve,1200));
-      r=await tentaPut(); /* apenas UMA repetição automática */
+      motivo409=await ghMsgErro(r.resp); /* lê o corpo uma vez */
+      /* segredo/push protection: retry não resolve — falha na hora com orientação */
+      if(!ghEhBloqueioSegredo(motivo409)){
+        await new Promise(resolve=>setTimeout(resolve,1200));
+        r=await tentaPut(); /* apenas UMA repetição automática (conflito de SHA) */
+        motivo409=null; /* corpo fresco na 2ª resposta */
+      }
     }
-    if(!r.resp.ok) throw await erroGithub(r.resp);
+    if(!r.resp.ok) throw await erroGithub(r.resp,motivo409);
     /* sucesso: adota como compartilhado e limpa ajustes locais (viraram redundantes) */
     precosShared={prices:prices,meta:r.meta};
     try{ localStorage.setItem(PRECOS_SHARED_LS,JSON.stringify(precosShared)); localStorage.removeItem(PRECOS_LS); }catch(e){}
