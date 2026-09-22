@@ -5,7 +5,7 @@ Aplicação web desenvolvida para elaboração, pré-visualização em tempo rea
 A ferramenta está **disponível online** via GitHub Pages e também pode ser executada offline como arquivo único (`index.html`), sem necessidade de instalação, banco de dados ou dependências externas.
 
 [![Acessar Online](https://img.shields.io/badge/Acessar-Online-1F386E?style=for-the-badge&logo=github&logoColor=white)](https://performance-itatiaiucu-commits.github.io/gerador-propostas-performance/)
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-1.11-1F386E)](CHANGELOG.md)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-1.12-1F386E)](CHANGELOG.md)
 [![Status Online](https://img.shields.io/badge/GitHub_Pages-Online-7FCC0E)](#)
 [![Uso Offline](https://img.shields.io/badge/funciona-offline-04CCFF)](#)
 [![Dependências](https://img.shields.io/badge/depend%C3%AAncias-nenhuma-9A66CB)](#)
@@ -69,7 +69,8 @@ Na janela de impressão do navegador:
 - **Regras Automáticas do LTCAT**: inclusão automática das 7 cláusulas comerciais ao adicionar medições ambientais.
 - **Regras Automáticas de Atendimento**: seção **"Serviço de Transporte 'Leva e Traz'"** (entra automaticamente quando a proposta contém exames ocupacionais, com aviso de verificação para grupos menores que 3 colaboradores) e seção **"Atendimento In Loco"** (marcada quando os exames serão realizados nas instalações do cliente, com as exigências de espaço, agenda de 7 dias e infraestrutura elétrica STECK).
 - **Painel de Verificações**: aponta pendências e campos obrigatórios antes da impressão.
-- **Persistência Local**: salvamento automático do rascunho em edição e histórico de até 40 propostas salvas no navegador.
+- **Tabela de Preços (💲)**: botão discreto no canto inferior direito abre a tela com todos os preços do catálogo (busca, contador de alterações e restauração dos padrões); os valores salvos passam a valer na criação das propostas.
+- **Persistência Local**: salvamento automático do rascunho em edição, histórico de até 40 propostas salvas no navegador e preços atualizados do catálogo.
 
 ---
 
@@ -95,7 +96,8 @@ Toda a lógica e apresentação residem no arquivo `index.html`. Para atualizar 
 
 | O que alterar | Onde encontrar no `index.html` |
 |---|---|
-| Tabela de preços e serviços | `const CAT = [` |
+| Tabela de preços e serviços (valores padrão) | `const CAT = [` |
+| Preços atualizados pelo editor 💲 (sobrepõem o `CAT`) | `localStorage` `pop_cat_precos_v1` — tela aberta pelo botão 💲 no canto inferior direito |
 | Consultores comerciais | `const VENDEDORES = [` |
 | Prazos de entrega padrão | `const PRAZOS = [` |
 | Cláusulas comerciais LTCAT | `const COND_LTCAT = [` |
