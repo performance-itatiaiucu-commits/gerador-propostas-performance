@@ -4,6 +4,41 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
 
 ---
 
+## [1.13] — 2026-09-22
+
+### Adicionado
+- **Tabela de preços compartilhada entre aparelhos**: os preços publicados
+  passam a valer para **todos** que acessarem o app, em qualquer dispositivo.
+  A tabela compartilhada vive no arquivo `precos.json` (publicado junto com o
+  site no GitHub Pages); cada aparelho com internet a lê ao abrir o app, ao
+  voltar para a aba e a cada 10 minutos.
+- Botão **☁ Publicar para todos** na tela 💲: grava a tabela no repositório
+  via API do GitHub — os demais aparelhos recebem em 1–2 minutos (tempo de
+  publicação do site). Exige um token do GitHub configurado **uma única vez**
+  no aparelho que publica (botão **⚙ Acesso** na barra de sincronização;
+  permissão Contents: Read and write no repositório). Os demais aparelhos não
+  precisam de nada.
+- Botão **💾 Só neste aparelho** (o antigo "Salvar preços"): mantém um ajuste
+  de preço apenas local. Precedência do preço efetivo: ajuste local >
+  compartilhado > padrão do catálogo.
+- **Barra de sincronização** no topo da tela 💲: mostra o estado
+  (☁ Sincronizado ✓ / ⚠ Sem conexão), a data e o autor da última publicação,
+  além dos botões **🔄 Verificar** (buscar agora a tabela publicada) e
+  **⚙ Acesso** (token, exibido mascarado).
+- Novos marcadores por linha: **"☁ compartilhado"** (preço publicado, igual
+  em todos os aparelhos) e **"💾 neste aparelho"** (ajuste local, com o valor
+  publicado/padrão na dica ao passar o mouse). Mantido o **"● alterado"**
+  (editado, ainda não salvo/publicado).
+- **Cache offline** da tabela compartilhada (`pop_cat_precos_shared_v1`):
+  sem internet, o app usa os últimos preços compartilhados conhecidos.
+
+### Alterado
+- Ajustes locais (`pop_cat_precos_v1`) agora guardam apenas diferenças em
+  relação ao compartilhado/padrão; publicar limpa os ajustes locais do
+  aparelho (viram redundantes). Dados salvos na v1.12 continuam válidos.
+
+---
+
 ## [1.12] — 2026-09-22
 
 ### Adicionado
