@@ -4,6 +4,27 @@ Este projeto segue, de forma simplificada, o padrão [Keep a Changelog](https://
 
 ---
 
+## [1.12] — 2026-09-22
+
+### Adicionado
+- **Editor de tabela de preços (💲)**: botão discreto no **canto inferior direito**
+  (quase invisível, ganha destaque ao passar o mouse) abre uma tela própria com o
+  **catálogo completo** — os 88 itens em 7 grupos — com preço editável linha a linha,
+  busca por código/serviço e contador de alterações pendentes.
+- Os preços salvos nessa tela **passam a valer na criação das propostas**: o catálogo
+  da seção "4 · Itens negociados" e os itens novos adicionados a partir dele já usam os
+  valores atualizados.
+- Indicadores de estado por linha: **"● alterado"** (editado, ainda não salvo) e
+  **"💾 salvo"** (preço já persistido, diferente do padrão).
+- Botão **↺ Padrão** devolve os valores padrão do catálogo embutido no código
+  (só vira definitivo ao clicar em "💾 Salvar preços").
+- Os valores persistem no navegador (`localStorage`, chave `pop_cat_precos_v1`),
+  guardando apenas as diferenças em relação à tabela padrão. Itens já inseridos em uma
+  proposta em edição não são alterados.
+- Tecla **Esc** fecha a tela de preços (com aviso se houver alterações não salvas).
+
+---
+
 ## [1.11] — 2026-09-21
 
 ### Alterado

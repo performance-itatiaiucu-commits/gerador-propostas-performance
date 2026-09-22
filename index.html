@@ -140,6 +140,27 @@ ul.sv li{margin-bottom:1px;break-inside:avoid}
 .clau{margin-bottom:6px;font-size:9.2pt;text-align:justify}
 .clau b{color:var(--azul)}
 
+/* ---------- BOTÃO 💲 (quase invisível) + PÁGINA DE PREÇOS ---------- */
+#btnPrecos{position:fixed;right:10px;bottom:10px;z-index:900;width:38px;height:38px;border:0;border-radius:50%;background:transparent;font-size:20px;line-height:1;padding:0;cursor:pointer;opacity:.12;transition:opacity .25s,transform .15s,background .25s;-webkit-tap-highlight-color:transparent}
+#btnPrecos:hover{opacity:.9;background:rgba(255,255,255,.5);transform:scale(1.1)}
+#pagPrecos{position:fixed;inset:0;z-index:1000;background:var(--bg);overflow-y:auto;display:none}
+#pagPrecos.aberto{display:block}
+.ppHead{position:sticky;top:0;z-index:5;background:linear-gradient(100deg,var(--azul) 0%,#2b4a86 55%,var(--indigo) 100%);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(31,56,110,.28)}
+.ppHead .tt{font-size:15px;font-weight:700;letter-spacing:.02em}
+.ppHead .mini{color:#bfdbfe}
+.ppBody{max-width:1020px;margin:0 auto;padding:16px 16px 90px}
+.ppCard{border:1px solid var(--borda);border-radius:9px;background:#fff;margin-bottom:12px;overflow:hidden}
+.ppCard>h3{margin:0;padding:9px 13px;background:var(--claro);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--azul);border-bottom:1px solid var(--borda);border-left:4px solid var(--ciano);display:flex;align-items:center;gap:8px}
+table.pp{width:100%;border-collapse:collapse;font-size:12.5px}
+table.pp th{background:linear-gradient(180deg,#e7effb,#dce8f7);color:var(--azul);font-size:10.5px;text-transform:uppercase;padding:6px 8px;text-align:left;border:1px solid var(--borda);letter-spacing:.03em}
+table.pp td{border:1px solid var(--borda);padding:5px 8px;vertical-align:middle}
+table.pp tr.alt td{background:#fff8e6}
+table.pp tr.alt:hover td{background:#ffefcb}
+table.pp td input{width:110px;padding:5px 7px;font-size:12.5px;text-align:right}
+.ppDot{color:#b45309;font-size:10px;font-weight:700;white-space:nowrap}
+.ppBusca{width:260px;max-width:60vw}
+@media(max-width:700px){table.pp td input{width:86px}.ppBusca{width:100%;max-width:none;flex:1 1 100%}}
+
 /* ---------- IMPRESSÃO ---------- */
 @page{size:A4;margin:0}
 @media print{
@@ -167,6 +188,23 @@ ul.sv li{margin-bottom:1px;break-inside:avoid}
 <div id="wrap">
   <div id="form"></div>
   <div id="prevwrap"><div id="preview"></div></div>
+</div>
+
+<!-- Botão quase invisível (canto inferior direito): abre a tabela de preços do catálogo -->
+<button id="btnPrecos" class="noprint" title="Tabela de preços — atualizar valores do catálogo" aria-label="Tabela de preços do catálogo" onclick="abrirPrecos()">💲</button>
+
+<!-- Página de atualização de preços (todos os serviços e produtos do catálogo) -->
+<div id="pagPrecos" class="noprint" role="dialog" aria-label="Tabela de preços do catálogo">
+  <div class="ppHead">
+    <span class="tt">💲 Tabela de Preços — Serviços &amp; Produtos</span>
+    <span id="ppCount" class="mini"></span>
+    <div style="flex:1"></div>
+    <input id="ppBusca" class="ppBusca" placeholder="🔎 Buscar código ou serviço…" oninput="renderPrecos()">
+    <button class="btn ghost" onclick="restaurarPrecos()" title="Devolver todos os valores padrão do catálogo">↺ Padrão</button>
+    <button class="btn green" onclick="salvarPrecos()">💾 Salvar preços</button>
+    <button class="btn" onclick="fecharPrecos()">✕ Voltar</button>
+  </div>
+  <div class="ppBody" id="ppBody"></div>
 </div>
 
 <script>
@@ -1317,7 +1355,123 @@ function numExt(n){
 }
 
 /* =======================================================================
-   7. BOOT
+   7. TABELA DE PREÇOS — botão 💲 (quase invisível, canto inferior direito)
+   Abre uma página com TODOS os itens do catálogo (const CAT) para
+   atualizar os valores. Ao salvar, os novos preços passam a valer na
+   criação das propostas (seletor do catálogo + novos itens).
+   Os valores são persistidos no navegador (localStorage), guardando
+   apenas os preços que diferem da tabela padrão embutida no código.
+   ======================================================================= */
+const PRECOS_LS="pop_cat_precos_v1";
+const CAT_ORIG=CAT.reduce((m,c)=>{m[c.c]=c.v;return m;},{});
+let ppEdicao={}, ppAbertura={};
+function precosSalvos(){
+  try{ const j=JSON.parse(localStorage.getItem(PRECOS_LS)||"{}"); return (j&&typeof j==="object")?j:{}; }
+  catch(e){ return {}; }
+}
+/* aplica ao CAT os preços salvos (reset para o padrão + sobrepõe o diff salvo) */
+function aplicarPrecos(){
+  const p=precosSalvos();
+  CAT.forEach(c=>{
+    c.v=CAT_ORIG[c.c];
+    if(typeof p[c.c]==="number"&&isFinite(p[c.c])) c.v=r2(Math.max(0,p[c.c]));
+  });
+}
+function ppParse(raw){
+  const n=Number(String(raw==null?"":raw).replace(",","."));
+  return (String(raw).trim()!==""&&isFinite(n))?r2(Math.max(0,n)):0;
+}
+function ppTemMudancas(){ return CAT.some(c=>ppEdicao[c.c]!==ppAbertura[c.c]); }
+/* marcador de estado da linha: alterado nesta sessão / já salvo antes */
+function ppMarcas(c){
+  const v=ppEdicao[c.c];
+  if(v!==ppAbertura[c.c]) return ' <span class="ppDot">● alterado</span>';
+  if(v!==CAT_ORIG[c.c]) return ' <span class="mini" style="color:#15803d" title="Preço já salvo (diferente do padrão do catálogo)">💾 salvo</span>';
+  return "";
+}
+function ppAtualizaContagem(){
+  const n=CAT.filter(c=>ppEdicao[c.c]!==ppAbertura[c.c]).length;
+  const e=document.getElementById("ppCount");
+  if(e) e.textContent=n?`${n} preço(s) alterado(s) — clique em "Salvar preços" para aplicar`:"sem alterações nesta tela";
+}
+function abrirPrecos(){
+  ppEdicao={}; ppAbertura={};
+  CAT.forEach(c=>{ ppEdicao[c.c]=c.v; ppAbertura[c.c]=c.v; });
+  const b=document.getElementById("ppBusca"); if(b) b.value="";
+  document.getElementById("pagPrecos").classList.add("aberto");
+  renderPrecos();
+}
+function fecharPrecos(){
+  if(ppEdicao&&ppTemMudancas()&&!confirm("Há alterações ainda não salvas na tabela de preços. Sair sem salvar?")) return;
+  document.getElementById("pagPrecos").classList.remove("aberto");
+  ppEdicao={};
+}
+function renderPrecos(){
+  const q=(document.getElementById("ppBusca").value||"").trim().toLowerCase();
+  const grupos={};
+  CAT.forEach(c=>{(grupos[c.g]=grupos[c.g]||[]).push(c);});
+  let h=`<p class="mini" style="max-width:860px;line-height:1.5">Atualize os valores abaixo e clique em <b>💾 Salvar preços</b>. Os preços salvos passam a ser usados na <b>criação das propostas</b> (catálogo da seção <b>4 · Itens negociados</b> e itens adicionados a partir dele). Itens já inseridos em uma proposta aberta continuam com os valores nela definidos.</p>`;
+  let totalVis=0;
+  Object.keys(grupos).forEach(g=>{
+    const rows=grupos[g].filter(c=>!q||(" "+c.c+" "+c.d+" "+c.u).toLowerCase().includes(q));
+    if(!rows.length) return;
+    totalVis+=rows.length;
+    h+=`<div class="ppCard"><h3>${esc(g)}<span class="mini" style="margin-left:auto;text-transform:none">(${rows.length})</span></h3>
+      <table class="pp"><thead><tr><th>Serviço / Produto</th><th style="width:76px">Unid.</th><th style="width:120px">Preço (R$)</th><th style="width:110px;text-align:right">Formatado</th></tr></thead><tbody>`;
+    rows.forEach(c=>{
+      const v=ppEdicao[c.c];
+      const mud=v!==ppAbertura[c.c];      /* alterado nesta sessão (ainda não salvo) */
+      const salvo=!mud&&v!==CAT_ORIG[c.c]; /* já salvo anteriormente (differ do padrão) */
+      h+=`<tr class="${mud?"alt":""}" id="ppr_${c.c}">
+        <td><b>${esc(c.c)}</b> · ${esc(c.d)}${mud?' <span class="ppDot">● alterado</span>':(salvo?' <span class="mini" style="color:#15803d" title="Preço já salvo (diferente do padrão do catálogo)">💾 salvo</span>':"")}</td>
+        <td class="mini" style="white-space:nowrap">${esc(c.u)}</td>
+        <td><input type="number" min="0" step="0.01" value="${v}" oninput="upPreco('${c.c}',this.value)"></td>
+        <td class="mini" style="text-align:right;white-space:nowrap" id="ppf_${c.c}">${money(v)}</td>
+      </tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  });
+  if(!totalVis) h+=`<div class="alerta">Nenhum item encontrado para "${esc(q)}".</div>`;
+  document.getElementById("ppBody").innerHTML=h;
+  ppAtualizaContagem();
+}
+function upPreco(code,val){
+  ppEdicao[code]=ppParse(val);
+  const row=document.getElementById("ppr_"+code);
+  if(row){
+    const mud=ppEdicao[code]!==ppAbertura[code];
+    row.classList.toggle("alt",mud);
+    /* atualiza o marcador da linha (alterado / salvo) sem reconstruir a tabela */
+    const td=row.querySelector("td");
+    if(td) td.innerHTML=`<b>${esc(CAT.find(x=>x.c===code).c)}</b> · ${esc(CAT.find(x=>x.c===code).d)}${mud?' <span class="ppDot">● alterado</span>':(ppEdicao[code]!==CAT_ORIG[code]?' <span class="mini" style="color:#15803d" title="Preço já salvo (diferente do padrão do catálogo)">💾 salvo</span>':"")}`;
+  }
+  const f=document.getElementById("ppf_"+code);
+  if(f) f.textContent=money(ppEdicao[code]);
+  ppAtualizaContagem();
+}
+function restaurarPrecos(){
+  if(!confirm("Restaurar TODOS os preços para os valores padrão do catálogo?\n\nEssa ação só vira definitiva quando você clicar em \"Salvar preços\".")) return;
+  CAT.forEach(c=>{ ppEdicao[c.c]=CAT_ORIG[c.c]; });
+  renderPrecos();
+}
+function salvarPrecos(){
+  CAT.forEach(c=>{ ppEdicao[c.c]=ppParse(ppEdicao[c.c]); });
+  const diff={};
+  CAT.forEach(c=>{ if(ppEdicao[c.c]!==CAT_ORIG[c.c]) diff[c.c]=ppEdicao[c.c]; });
+  try{ localStorage.setItem(PRECOS_LS,JSON.stringify(diff)); }
+  catch(e){ alert("Não foi possível salvar no navegador (armazenamento local indisponível)."); return; }
+  aplicarPrecos(); /* atualiza a tabela CAT usada na criação das propostas */
+  document.getElementById("pagPrecos").classList.remove("aberto");
+  ppEdicao={};
+  render();
+  flag("💲 preços salvos ✓ — catálogo atualizado");
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&document.getElementById("pagPrecos").classList.contains("aberto")) fecharPrecos();
+});
+
+/* =======================================================================
+   8. BOOT
    ======================================================================= */
 /* --- preservação de foco: identifica o campo pelo seu handler + posição --- */
 function keyOf(el){
@@ -1390,6 +1544,7 @@ function render(){
   clearTimeout(tsave); tsave=setTimeout(salvarLast,700);
 }
 document.getElementById("mklogo").src=LOGO_POP;
+aplicarPrecos(); /* aplica os preços salvos (botão 💲) ao catálogo antes da 1ª renderização */
 if(!carregarLast()){ S=estadoInicial(); setTipo("E"); }
 renderForm(); renderPreview();
 </script>

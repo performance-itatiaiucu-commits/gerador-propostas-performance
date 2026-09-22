@@ -47,6 +47,18 @@ Ao clicar em **Baixar PDF** abre a janela de impressão. Configure:
 > ⚠️ Os dados ficam no navegador daquele computador. Trocar de máquina ou limpar os dados do navegador apaga o histórico. Guarde sempre o PDF gerado.
 
 
+## Tabela de Preços (💲)
+No **canto inferior direito** da tela há um botão **💲** discreto (quase invisível; ganha destaque ao passar o mouse). Ele abre a **tela de preços** com todo o catálogo de serviços e produtos (88 itens em 7 grupos):
+
+- Edite o valor diretamente na tabela (aceita vírgula: `55,90`) e use a **busca** por código ou serviço.
+- **💾 Salvar preços** aplica os valores à **criação das propostas**: o catálogo da seção "4 · Itens negociados" e os itens novos adicionados a partir dele já usam os preços atualizados.
+- **↺ Padrão** devolve os valores padrão do catálogo embutido no código (só vira definitivo ao salvar).
+- Linhas aparecem com **"● alterado"** (editado e ainda não salvo) ou **"💾 salvo"** (preço já persistido, diferente do padrão).
+- Itens **já inseridos** em uma proposta em edição não são alterados — apenas as novas propostas passam a usar os novos preços.
+- Os preços ficam salvos no navegador (mesma persistência do rascunho e do histórico). Limpar os dados do navegador devolve a tabela padrão.
+- Tecla **Esc** fecha a tela (com aviso se houver alterações não salvas).
+
+
 ## Identidade visual aplicada
 
 O logotipo do **Grupo Performance** está **embutido dentro do arquivo** (não depende de imagem externa) e aparece em:
