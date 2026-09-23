@@ -207,7 +207,7 @@ table.pp td input{width:110px;padding:5px 7px;font-size:12.5px;text-align:right}
     <span class="tt">💲 Tabela de Preços — Serviços &amp; Produtos</span>
     <span id="ppCount" class="mini"></span>
     <div style="flex:1"></div>
-    <input id="ppBusca" class="ppBusca" placeholder="🔎 Buscar código ou serviço…" oninput="renderPrecos()">
+    <input id="ppBusca" class="ppBusca" placeholder="🔎 Pesquisar nome ou código…" aria-label="Pesquisar serviço ou produto por nome ou código" oninput="renderPrecos()">
     <button class="btn ghost" onclick="restaurarPrecos()" title="Devolver todos os valores padrão do catálogo">↺ Padrão</button>
     <button class="btn ghost" onclick="salvarPrecos()" title="Salva apenas neste aparelho/navegador">💾 Só neste aparelho</button>
     <button id="btnPublicar" class="btn green" onclick="publicarPrecos()" title="Publica a tabela para TODOS os aparelhos">☁ Publicar para todos</button>
@@ -683,8 +683,9 @@ function renderForm(){
 
   /* --- ITENS --- */
   h+=card("itens","4 · Itens negociados",`
+    <div style="margin-bottom:7px"><input id="buscaCat" type="search" value="${esc(buscaCat)}" placeholder="Pesquisar serviço ou produto por nome ou código" aria-label="Pesquisar serviço ou produto por nome ou código" oninput="filtrarCat(this.value)"></div>
     <div class="rowflex" style="margin-bottom:9px">
-      <select id="selCat" style="flex:1">${gruposCat()}</select>
+      <select id="selCat" style="flex:1" aria-label="Serviços e produtos">${gruposCat(buscaCat)}</select>
       <button class="btn sm" style="background:var(--azul);color:#fff" onclick="addCat()">+ Adicionar</button>
       <button class="btn sm" style="background:var(--claro)" onclick="addLivre()">+ Item livre</button>
     </div>
@@ -875,9 +876,18 @@ function chkBloco(k,lbl,auto){
   const val=bl(k,auto);
   return `<label class="chk"><input type="checkbox" ${val?"checked":""} onchange="up('blocos.${k}',this.checked)">${lbl}${S.blocos[k]===null?' <span class="mini">(automático)</span>':""}</label>`;
 }
-function gruposCat(){
-  const g={}; CAT.forEach(c=>{(g[c.g]=g[c.g]||[]).push(c);});
+let buscaCat="";
+function gruposCat(termo=""){
+  const q=termo.trim().toLocaleLowerCase("pt-BR");
+  const g={}; CAT.filter(c=>!q||c.c.toLocaleLowerCase("pt-BR").includes(q)||c.d.toLocaleLowerCase("pt-BR").includes(q)).forEach(c=>{(g[c.g]=g[c.g]||[]).push(c);});
   return Object.keys(g).map(k=>`<optgroup label="${esc(k)}">`+g[k].map(c=>`<option value="${c.c}">${esc(c.d.slice(0,72))}${c.v?" — "+money(c.v):""}</option>`).join("")+`</optgroup>`).join("");
+}
+
+function filtrarCat(termo){
+  buscaCat=termo;
+  const sel=document.getElementById("selCat"), anterior=sel.value;
+  sel.innerHTML=gruposCat(termo);
+  if([...sel.options].some(o=>o.value===anterior)) sel.value=anterior;
 }
 
 /* =======================================================================
@@ -1482,7 +1492,7 @@ function renderPrecos(){
       const v=ppEdicao[c.c];
       const mud=v!==ppAbertura[c.c];      /* alterado nesta sessão (ainda não salvo/publicado) */
       h+=`<tr class="${mud?"alt":""}" id="ppr_${c.c}">
-        <td><b>${esc(c.c)}</b> · ${esc(c.d)}${ppMarca(c)}</td>
+        <td>${esc(c.d)}${ppMarca(c)}</td>
         <td class="mini" style="white-space:nowrap">${esc(c.u)}</td>
         <td><input type="number" min="0" step="0.01" value="${v}" oninput="upPreco('${c.c}',this.value)"></td>
         <td class="mini" style="text-align:right;white-space:nowrap" id="ppf_${c.c}">${money(v)}</td>
